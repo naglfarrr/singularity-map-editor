@@ -296,3 +296,18 @@ test('玩家载荷投影搬进 hostSession，sync 只留门面', async () => {
   assert.match(sync, /bindPlayer\(binding, pcId\)/);
   assert.match(sync, /unbindPlayer\(binding\)/);
 });
+
+test('转发地址：https 页面必须给出 wss，否则浏览器拒绝构造 WebSocket', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'ts-relay-url-'));
+  const file = join(dir, 'dep.cjs');
+  await build({ stdin: { contents: `export * from './src/core/deployment';`, resolveDir: root }, outfile: file, bundle: true, platform: 'node', format: 'cjs', logLevel: 'silent', define: { 'import.meta.env': '{}' } });
+  const api = (await import(file)).default ?? (await import(file));
+  const https = { protocol: 'https:', host: 'game-test.singularity7.fun', hostname: 'game-test.singularity7.fun' };
+  assert.equal(api.relayUrlFor(undefined, https), 'wss://game-test.singularity7.fun/ws');
+  assert.equal(api.relayUrlFor({ VITE_SERVER_URL: 'wss://relay.example/ws' }, https), 'wss://relay.example/ws');
+  const http = { protocol: 'http:', host: 'localhost:5178', hostname: 'localhost' };
+  assert.equal(api.relayUrlFor(undefined, http), 'ws://localhost:8787');
+  // 本地开发如果走了 https，也不该退回 8787 的明文口
+  assert.equal(api.relayUrlFor(undefined, { ...https, host: 'localhost:5178' }), 'wss://localhost:5178/ws');
+  await rm(dir, { recursive: true, force: true });
+});

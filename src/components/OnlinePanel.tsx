@@ -45,7 +45,9 @@ export function OnlinePanel() {
     <div className="menu-body">
       {!roomId ? <>
         <button disabled={busy} onClick={open}>{busy ? '正在建房…' : '开一个线上房间'}</button>
-        <div className="menu-ver">需要先运行 <code>npm run server</code>；本地的「打开玩家窗口」不受影响。</div>
+        {!import.meta.env.PROD || location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+          ? <div className="menu-ver">需要先运行 <code>npm run server</code>；本地的「打开玩家窗口」不受影响。</div>
+          : <div className="menu-ver">线上房间走本站 <code>/ws</code> 反代；本地的「打开玩家窗口」不受影响。</div>}
       </> : <>
         <div className="menu-ver">房间号：<b>{roomId}</b></div>
         <div className="menu-ver">给每个角色发一张一次性邀请；玩家打开链接就进这个房间。</div>

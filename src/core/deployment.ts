@@ -27,3 +27,17 @@ export const playerWindowBase = (): string => { const o = playerWindowOrigin(); 
 /** 玩家窗口该往哪边回话：部署时钉住的地址；开发时玩家窗口和主持人是同一个源，回当前来源。 */
 export const hostOriginForPlayer = () => configuredHostOrigin() ?? location.origin;
 export const messageTarget = (value: string) => value === 'null' ? '*' : value;
+
+/**
+ * 转发服务器地址。同源部署（Caddy 把 /ws 反代到 relay）时按页面协议选：
+ * https 页面必须用 wss，否则浏览器直接拒绝构造 WebSocket（insecure WebSocket）。
+ * 显式配了 VITE_SERVER_URL 就听它的。
+ */
+export function relayUrlFor(
+  cfg: { VITE_SERVER_URL?: string; [key: string]: unknown } | undefined,
+  page: { protocol: string; host: string; hostname: string },
+): string {
+  if (cfg?.VITE_SERVER_URL) return cfg.VITE_SERVER_URL;
+  if (page.protocol === 'https:') return `wss://${page.host}/ws`;
+  return `ws://${page.hostname}:8787`;
+}

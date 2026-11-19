@@ -3,12 +3,10 @@
 import { isRoomCreatedPayload, isRoomInvitedPayload, isRoomJoinedPayload, isRoomReconnectedPayload } from '../protocol';
 import { connectRelay, type RelaySocket } from './wsSocket';
 import { createWsTransport } from './transportWs';
+import { relayUrlFor } from '../core/deployment';
 import { registerOnlinePlayer, resetPlayerBindings, setTransport, unregisterOnlinePlayer, useLocalTransport } from './sync';
 
-export const relayUrl = (): string => {
-  const env = import.meta.env;
-  return env?.VITE_SERVER_URL || `ws://${location.hostname}:8787`;
-};
+export const relayUrl = (): string => relayUrlFor(import.meta.env, location);
 
 const HOST_KEY = 'ts-online-host';
 const PLAYER_KEY = 'ts-online-player';
